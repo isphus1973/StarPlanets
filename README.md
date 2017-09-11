@@ -1,4 +1,4 @@
-#StarPlanets
+# StarPlanets
 
 This is a atempt to solve the [EPRV3 Evidence Challenge](http://eprv2017.psu.edu/) using [PolyChord](https://ccpforge.cse.rl.ac.uk/gf/project/polychord/).
 
