@@ -69,7 +69,7 @@ def likel(x, data, nplanet):
 #Priors on the hypercube
 def prior_hc(cube,n_dim):
     #n_plan = (len(cube)-2)/5 #You should test if it is the right integer. You may discard this.
-    n_plan = (n_dim-2)/5
+    n_plan = int((n_dim-2)/5)
     theta = [0.0] * n_dim
     x_planets = [cube[i*5:i*5+5] for i in range(n_plan)]
     try:
@@ -78,7 +78,8 @@ def prior_hc(cube,n_dim):
         xp, xK, xe, xw, xM = 0, 0, 0, 0, 0
     xc = cube[5*n_plan]
     xj = cube[-1]
-    xp = np.sort(xp) #p1<p2<p3
+    if n_plan>0:
+        xp = np.sort(xp) #p1<p2<p3
     c = -1000+2000*xc
     j = np.power(10,2*xj)-1
     p = 1.25 * np.power(10000/1.25,xp )
