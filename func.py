@@ -4,8 +4,6 @@ from george.kernels import ExpSine2Kernel #For Gaussian Processes
 import george
 from scipy import optimize as op
 
-
-
 #From https://en.wikipedia.org/wiki/True_anomaly and
 #http://exoplanets.astro.yale.edu/workshop/EPRV/Bibliography_files/Radial_Velocity.pdf
 #Returns the mean anomaly in the 2 pi interval
@@ -18,17 +16,10 @@ def real_anomaly(M,e):
                           fprime2=lambda z: -e * np.sin(M+z))
     return [(np.cos(ec_anol)-e)/(1-e * np.cos(ec_anol)),(np.sqrt(1-e**2) * np.sin(ec_anol))/(1-e*np.cos(ec_anol))]
 
+#Radial velocity for one planet
 def RV(t, K, p, e, w, M0, t0=0):
-    #p = np.abs(p)
-    #K = np.abs(K)
-    #w = np.abs(w)%(2*np.pi)
-    #e=np.abs(e)
-    #if e>1: e=0.9
-    #M0 = np.abs(M0)%(2*np.pi)
     cosf, sinf = real_anomaly(mean_anomaly(M0,t,t0,p),e)
     return K * (np.cos(w)*cosf-np.sin(w)*sinf+e*np.cos(w))
-#Radial velocity for one planet
-
 
 #Model for velocity function.
 #Input: Planets parameters: Last 2 ate C and J. Five extra parameters for each planet
@@ -47,6 +38,7 @@ def model(params, times, nPlanets):
                        for i in range(nPlanets)]) + offset
     return mod
 
+
 #Gaussian Processes kernel
 var, length_e, length_s, period = 3.0, 50., 0.5, 20.
 gamma = 1/(2.*length_s*length_s)
@@ -60,18 +52,34 @@ def lnlike(params, obs, nPlanets):
     sigs_plus_jitter = np.sqrt(sigs*sigs + jit*jit*np.ones(len(times)))
     gp = george.GP(kernel)
     gp.compute(times, sigs_plus_jitter)
-    #    return gp.lnlikelihood(rvs - model_1(params, times, nPlanets))
     return gp.lnlikelihood(rvs - model(params, times, nPlanets))
-
 
 def likel(x, data, nplanet):
     return lnlike(x, data, nplanet), [0.0]*0
+
+def likeld(x, data, nplanet):
+    if nplanet > 0:
+        x_planets = [x[i*5:i*5+5] for i in range(n_plan)]
+        try:
+            xp, xK, xe, xw, xM = np.transpose(x_planets)
+        except ValueError:
+            xp, xK, xe, xw, xM = 0, 0, 0, 0, 0
+        hder = xe*np.sin(xw)
+        kder = xe*np.cos(xw)
+        ider = xw + xM
+        derived = np.concatenate[(hder,kder,ider)]
+    else:
+        derived = [0.0]*0
+    return lnlike(x, data, nplanet), derived
+
 #Priors on the hypercube
-def prior_hc(cube,n_dim):
+def prior_hc(cube,n_dim,bound=[]):
     #n_plan = (len(cube)-2)/5 #You should test if it is the right integer. You may discard this.
     n_plan = int((n_dim-2)/5)
     theta = [0.0] * n_dim
     x_planets = [cube[i*5:i*5+5] for i in range(n_plan)]
+    if len(bound) == 0:
+        bound = np.array([[1.25,10000]]*n_plan)
     try:
         xp, xK, xe, xw, xM = np.transpose(x_planets)
     except ValueError:
@@ -82,7 +90,7 @@ def prior_hc(cube,n_dim):
         xp = np.sort(xp) #p1<p2<p3
     c = -1000+2000*xc
     j = np.power(10,2*xj)-1
-    p = 1.25 * np.power(10000/1.25,xp )
+    p = bound[:,0] * np.power(bound[:,1]/bound[:,0],xp )
     K = np.power(10, 3*xK) -1
     e = np.sqrt(-0.08*np.log(1-(1-np.exp(-1/0.08))*xe))
     w = 2*np.pi*xw
