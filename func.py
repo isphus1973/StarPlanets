@@ -78,16 +78,15 @@ def prior_hc(cube,n_dim,bound=[]):
     n_plan = int((n_dim-2)/5)
     theta = [0.0] * n_dim
     x_planets = [cube[i*5:i*5+5] for i in range(n_plan)]
-    if len(bound) == 0:
-        bound = np.array([[1.25,10000]]*n_plan)
     try:
         xp, xK, xe, xw, xM = np.transpose(x_planets)
     except ValueError:
         xp, xK, xe, xw, xM = 0, 0, 0, 0, 0
     xc = cube[5*n_plan]
     xj = cube[-1]
-    if n_plan>0:
+    if n_plan>0 and len(bound) == 0:
         xp = np.sort(xp) #p1<p2<p3
+        bound = np.array([[1.25,10000]]*n_plan)
     c = -1000+2000*xc
     j = np.power(10,2*xj)-1
     p = bound[:,0] * np.power(bound[:,1]/bound[:,0],xp )

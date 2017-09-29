@@ -19,7 +19,7 @@ obser = [data[:,0],data[:,1],data[:,2]]
 
 ndim = 2+nplan*5
 nderived = nplan*3*der
-rootf = str(nplan)+'pd0001'+pr
+rootf = str(nplan)+'pd'+datan+pr
 
 def loglkhd(x):
     return likel(x, obser, nplan)
