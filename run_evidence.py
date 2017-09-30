@@ -35,13 +35,14 @@ else:
 def prior(x):
     return prior_hc(x,ndim,bound)
 
-minimi = loglkhd
-
 if der>0:
     minimi = loglkhddev
+else:
+    minimi = loglkhd
 
-settings = PCS(ndim, nderived, nlive=2000*ndim, num_repeats=10*ndim)
+settings = PCS(ndim, nderived, nlive=400*ndim, num_repeats=10*ndim)
 settings.file_root = rootf
 settings.do_clustering = True
 
 ouput = PyPolyChord.run_polychord(minimi, ndim, nderived, settings, prior)
+

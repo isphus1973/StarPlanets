@@ -59,7 +59,7 @@ def likel(x, data, nplanet):
 
 def likeld(x, data, nplanet):
     if nplanet > 0:
-        x_planets = [x[i*5:i*5+5] for i in range(n_plan)]
+        x_planets = [x[i*5:i*5+5] for i in range(nplanet)]
         try:
             xp, xK, xe, xw, xM = np.transpose(x_planets)
         except ValueError:
@@ -67,10 +67,10 @@ def likeld(x, data, nplanet):
         hder = xe*np.sin(xw)
         kder = xe*np.cos(xw)
         ider = xw + xM
-        derived = np.concatenate[(hder,kder,ider)]
+        derived = np.concatenate((hder,kder,ider))
     else:
-        derived = [0.0]*0
-    return lnlike(x, data, nplanet), derived
+        derived = np.array([0.0]*0)
+    return lnlike(x, data, nplanet), derived.tolist()
 
 #Priors on the hypercube
 def prior_hc(cube,n_dim,bound=[]):
